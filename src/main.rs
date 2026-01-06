@@ -33,8 +33,8 @@ impl Ray{
         dx = dx / distance;
         dy = dy / distance;
         let a = mass / (distance * distance);
-        self.vx = a * dx;
-        self.vy = a * dy;
+        self.vx += a * dx;
+        self.vy += a * dy;
     }
 }
 
@@ -54,16 +54,24 @@ fn main() {
     // Limit to max ~60 fps update rate
     window.set_target_fps(60);
 
-    let mut ray = Ray::new(200.0,300.0,1.0,0.0);
+    let ray0 = Ray::new(200.0,300.0,3.0,0.0);
+    let ray1 = Ray::new(200.0,400.0,3.0,0.0);
+    let ray2 = Ray::new(200.0,100.0,3.0,0.0);
+    let ray3 = Ray::new(200.0,200.0,3.0,0.0);
+    let ray4 = Ray::new(200.0,500.0,3.0,0.0);
+
+    let mut ray_arr = [ray0, ray1, ray2, ray3, ray4];
 
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         buffer.fill(0);
 
 
-        ray.apply_gravity(CIRCLE_X as f64, CIRCLE_Y as f64, 10000.0);
-        ray.update();
-        draw_circle(&mut buffer, ray.x as usize, ray.y as usize, 3, 0xFFFFFF);
+        for ray in ray_arr.iter_mut(){
+            ray.apply_gravity(CIRCLE_X as f64, CIRCLE_Y as f64, 10000.0);
+            ray.update();
+            draw_circle(&mut buffer, ray.x as usize, ray.y as usize, 3, 0xFFFFFF);
+        }
         draw_circle(&mut buffer, CIRCLE_X, CIRCLE_Y, RADIUS, COLOR);
 
 
