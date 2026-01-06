@@ -89,8 +89,8 @@ fn main() {
 
     let mut ray_vec:Vec<Ray> = vec![];
 
-    for i in 0..100{
-        ray_vec.push(Ray::new(-600.0,-300.0+ 8.0*i as f64,3.0,0.0));
+    for i in 0..10000{
+        ray_vec.push(Ray::new(-400.0,-300.0+ 0.08*i as f64,3.0,0.0));
     }
 
 
@@ -201,6 +201,12 @@ fn rk4_step(ray: &mut Ray, dt: f64) {
     ray.trail.push((ray.x, ray.y));
     if ray.trail.len() > 200 {
         ray.trail.remove(0);
+    }
+
+    let screen_x = ray.x + OFF_WIDTH as f64;
+    let screen_y = ray.y + OFF_HEIGHT as f64;
+    if screen_x < 0.0 || screen_x >= WIDTH as f64 || screen_y < 0.0 || screen_y >= HEIGHT as f64 {
+        ray.alive = false;
     }
 }
 
