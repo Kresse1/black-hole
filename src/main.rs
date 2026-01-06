@@ -1,4 +1,6 @@
 
+use std::collections::btree_map::Range;
+
 use minifb::{Key, Window, WindowOptions};
 
 const WIDTH: usize = 800;
@@ -14,16 +16,18 @@ struct Ray {
     x: f64,
     y: f64,
     vx: f64,
-    vy: f64
+    vy: f64,
+    trail: Vec<(f64,f64)>,
 }
 
 impl Ray{
     fn new(x: f64, y: f64, vx: f64, vy: f64)-> Self{
-        Self {x, y, vx, vy}
+        Self {x, y, vx, vy, trail: Vec::new()}
     }
     fn update(&mut self){
         self.x += self.vx;
         self.y += self.vy;
+        self.trail.push((self.x, self.y));
 
     }
     fn apply_gravity(&mut self, bh_x:f64, bh_y:f64, mass:f64){
@@ -35,6 +39,24 @@ impl Ray{
         let a = mass / (distance * distance);
         self.vx += a * dx;
         self.vy += a * dy;
+    }
+    fn draw_trail(&self, buffer: &mut Vec<u32>, color: u32){
+        let len = self.trail.len();
+        if len == 0{
+            return;
+        }
+
+        for (i, (x,y)) in self.trail.iter().enumerate(){
+            if *x < 0.0 || *x >= WIDTH as f64 || *y < 0.0 || *y >= HEIGHT as f64{
+                continue;
+            }
+
+            let brightness = i as f64 / len as f64;
+            let c = (brightness * 255.0) as u32;
+            let color = (c<<16)|(c<<8)|c;
+
+            buffer[*y as usize * WIDTH + *x as usize] = color;
+        }
     }
 }
 
@@ -62,14 +84,21 @@ fn main() {
 
     let mut ray_arr = [ray0, ray1, ray2, ray3, ray4];
 
+    let mut ray_vec:Vec<Ray> = vec![];
+
+    for i in 0..10{
+        ray_vec.push(Ray::new(100.0,200.0+ 40.0*i as f64,3.0,0.0));
+    }
+
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         buffer.fill(0);
 
 
-        for ray in ray_arr.iter_mut(){
+        for ray in ray_vec.iter_mut(){
             ray.apply_gravity(CIRCLE_X as f64, CIRCLE_Y as f64, 10000.0);
             ray.update();
+            ray.draw_trail(&mut buffer, 0xFFFFFF);
             draw_circle(&mut buffer, ray.x as usize, ray.y as usize, 3, 0xFFFFFF);
         }
         draw_circle(&mut buffer, CIRCLE_X, CIRCLE_Y, RADIUS, COLOR);
