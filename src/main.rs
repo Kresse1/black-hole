@@ -1,6 +1,4 @@
 
-use std::collections::btree_map::Range;
-
 use minifb::{Key, Window, WindowOptions};
 
 const WIDTH: usize = 800;
@@ -18,6 +16,8 @@ struct Ray {
     vx: f64,
     vy: f64,
     trail: Vec<(f64,f64)>,
+
+
 }
 
 impl Ray{
@@ -28,17 +28,27 @@ impl Ray{
         self.x += self.vx;
         self.y += self.vy;
         self.trail.push((self.x, self.y));
+        if self.trail.len() > 50{
+            self.trail.remove(0);
+        }
 
     }
     fn apply_gravity(&mut self, bh_x:f64, bh_y:f64, mass:f64){
         let mut dx = bh_x - self.x;
         let mut dy = bh_y - self.y;
         let distance = (dx*dx + dy*dy).sqrt();
+        if distance < RADIUS as f64{
+            self.vx = 0.0;
+            self.vy = 0.0;
+            return;
+        }
         dx = dx / distance;
         dy = dy / distance;
         let a = mass / (distance * distance);
         self.vx += a * dx;
         self.vy += a * dy;
+
+
     }
     fn draw_trail(&self, buffer: &mut Vec<u32>, color: u32){
         let len = self.trail.len();
@@ -76,18 +86,10 @@ fn main() {
     // Limit to max ~60 fps update rate
     window.set_target_fps(60);
 
-    let ray0 = Ray::new(200.0,300.0,3.0,0.0);
-    let ray1 = Ray::new(200.0,400.0,3.0,0.0);
-    let ray2 = Ray::new(200.0,100.0,3.0,0.0);
-    let ray3 = Ray::new(200.0,200.0,3.0,0.0);
-    let ray4 = Ray::new(200.0,500.0,3.0,0.0);
-
-    let mut ray_arr = [ray0, ray1, ray2, ray3, ray4];
-
     let mut ray_vec:Vec<Ray> = vec![];
 
     for i in 0..10{
-        ray_vec.push(Ray::new(100.0,200.0+ 40.0*i as f64,3.0,0.0));
+        ray_vec.push(Ray::new(100.0,200.0+ 40.0*i as f64,10.0,0.0));
     }
 
 
@@ -99,7 +101,7 @@ fn main() {
             ray.apply_gravity(CIRCLE_X as f64, CIRCLE_Y as f64, 10000.0);
             ray.update();
             ray.draw_trail(&mut buffer, 0xFFFFFF);
-            draw_circle(&mut buffer, ray.x as usize, ray.y as usize, 3, 0xFFFFFF);
+            draw_circle(&mut buffer, ray.x as usize, ray.y as usize, 2, 0xFFFFFF);
         }
         draw_circle(&mut buffer, CIRCLE_X, CIRCLE_Y, RADIUS, COLOR);
 
